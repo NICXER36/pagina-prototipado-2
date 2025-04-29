@@ -1,0 +1,1626 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Panel de Administración</title>
+    <style>
+      /* Estilos generales */
+      body {
+        margin: 0;
+        font-family: 'Roboto', sans-serif;
+        display: flex;
+        height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%);
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 250px;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sidebar::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+        pointer-events: none;
+      }
+
+      .sidebar img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+        border: 3px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+      }
+
+      .sidebar img:hover {
+        transform: scale(1.05);
+        border-color: rgba(255, 255, 255, 0.4);
+      }
+
+      .sidebar h2 {
+        margin: 10px 0;
+        font-size: 18px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+      }
+
+      .sidebar button {
+        width: 100%;
+        margin: 5px 0;
+        padding: 12px 15px;
+        font-size: 14px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: left;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .sidebar button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: 0.5s;
+      }
+
+      .sidebar button:hover::before {
+        left: 100%;
+      }
+
+      .sidebar button:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateX(5px);
+      }
+
+      .logout {
+        margin-top: auto;
+        background: rgba(255, 77, 77, 0.8) !important;
+      }
+
+      .logout:hover {
+        background: rgba(255, 77, 77, 0.9) !important;
+      }
+
+      /* Contenido principal */
+      .content {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .content h1 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-size: 24px;
+        border-bottom: 2px solid #6a11cb;
+        padding-bottom: 10px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Tablas */
+      table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin: 15px 0;
+        background: #fff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      table th, table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid rgba(106, 17, 203, 0.1);
+      }
+
+      table th {
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        font-weight: 500;
+        text-transform: uppercase;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+      }
+
+      table tr:last-child td {
+        border-bottom: none;
+      }
+
+      table tr {
+        transition: all 0.3s ease;
+      }
+
+      table tr:hover {
+        background-color: rgba(106, 17, 203, 0.05);
+        transform: scale(1.001);
+      }
+
+      tr.selected {
+        background-color: rgba(106, 17, 203, 0.1) !important;
+      }
+
+      tr.selected:hover {
+        background-color: rgba(106, 17, 203, 0.15) !important;
+      }
+
+      /* Botones de acción */
+      .action-buttons {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .action-buttons button {
+        padding: 10px 20px;
+        font-size: 13px;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .action-buttons button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: 0.5s;
+      }
+
+      .action-buttons button:hover::before {
+        left: 100%;
+      }
+
+      .action-buttons button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+      }
+
+      /* Formularios modales */
+      .modal-form {
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+        max-width: 600px;
+        margin: 20px auto;
+        position: relative;
+        z-index: 1000;
+      }
+
+      .modal-form h2 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid rgba(106, 17, 203, 0.2);
+      }
+
+      .modal-form label {
+        display: block;
+        margin-bottom: 15px;
+        color: #2c3e50;
+      }
+
+      .modal-form input,
+      .modal-form select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid rgba(106, 17, 203, 0.2);
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      .modal-form input:focus,
+      .modal-form select:focus {
+        outline: none;
+        border-color: #6a11cb;
+        box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+      }
+
+      .modal-form button {
+        padding: 12px 25px;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        margin: 5px;
+      }
+
+      .modal-form button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(106, 17, 203, 0.3);
+      }
+
+      .modal-form button[type="button"]:last-child {
+        background: #dc3545;
+      }
+
+      .form-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      #overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        z-index: 999;
+      }
+
+      #patientFormContainer {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1000;
+        width: 90%;
+        max-width: 600px;
+      }
+
+      /* Detalles del paciente */
+      .patient-details {
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .patient-details p {
+        padding: 12px;
+        border-bottom: 1px solid rgba(106, 17, 203, 0.1);
+        display: flex;
+        justify-content: space-between;
+        transition: all 0.3s ease;
+      }
+
+      .patient-details p:hover {
+        background: rgba(106, 17, 203, 0.05);
+      }
+
+      .patient-details strong {
+        color: #6a11cb;
+      }
+
+      .patient-details h3 {
+        color: #2c3e50;
+        margin: 20px 0 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid rgba(106, 17, 203, 0.2);
+      }
+
+      /* Estilos para el reporte estadístico */
+      .statistics-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 30px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border-radius: 15px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      .statistics-form {
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .statistics-form h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 1.2em;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 8px;
+      }
+
+      .statistics-form label {
+        display: block;
+        margin-bottom: 15px;
+        color: #34495e;
+        font-weight: 500;
+      }
+
+      .statistics-form input {
+        width: 100%;
+        padding: 8px 12px;
+        border: 2px solid #e0e0e0;
+        border-radius: 6px;
+        margin-top: 5px;
+        transition: all 0.3s ease;
+      }
+
+      .statistics-form input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        outline: none;
+      }
+
+      .statistics-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .statistics-buttons button {
+        flex: 1;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .statistics-buttons button:first-child {
+        background: #3498db;
+        color: white;
+      }
+
+      .statistics-buttons button:last-child {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .statistics-buttons button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .charts-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .chart {
+        text-align: center;
+        padding: 15px;
+        background: linear-gradient(145deg, #ffffff, #f8f9fa);
+        border-radius: 10px;
+        transition: transform 0.3s ease;
+      }
+
+      .chart:hover {
+        transform: translateY(-5px);
+      }
+
+      .chart h4 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 1.1em;
+      }
+
+      .circle-chart {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+        border-radius: 50%;
+        background: conic-gradient(
+          #3498db calc(var(--percentage) * 1%),
+          #ecf0f1 0
+        );
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #2c3e50;
+        box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .circle-chart::before {
+        content: attr(data-value);
+        position: absolute;
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #2c3e50;
+      }
+
+      .circle-chart::after {
+        content: '';
+        position: absolute;
+        width: 80%;
+        height: 80%;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      }
+
+      .priority-section {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .priority-section h3 {
+        color: #2c3e50;
+        margin-bottom: 15px;
+        font-size: 1.3em;
+      }
+
+      .priority-bar {
+        height: 40px;
+        background: linear-gradient(to right, #e74c3c var(--percentage), #ecf0f1 var(--percentage));
+        border-radius: 20px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .priority-bar::before {
+        content: attr(data-value);
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        color: #2c3e50;
+        font-size: 1.2em;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
+        z-index: 1;
+      }
+
+      @media (max-width: 768px) {
+        .statistics-container {
+          grid-template-columns: 1fr;
+        }
+
+        .charts-container {
+          grid-template-columns: 1fr;
+        }
+
+        .circle-chart {
+          width: 120px;
+          height: 120px;
+        }
+      }
+
+      /* Estilos para la página de perfil */
+      .profile-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px;
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border-radius: 15px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 30px;
+      }
+
+      .profile-image {
+        text-align: center;
+      }
+
+      .profile-image img {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        margin-bottom: 20px;
+        border: 3px solid #3498db;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+
+      .profile-image img:hover {
+        transform: scale(1.05);
+        border-color: #2980b9;
+      }
+
+      .profile-image button {
+        padding: 10px 20px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .profile-image button:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .profile-info {
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+
+      .profile-info form {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .profile-info label {
+        display: block;
+        margin-bottom: 5px;
+        color: #34495e;
+        font-weight: 500;
+      }
+
+      .profile-info input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1em;
+        transition: all 0.3s ease;
+      }
+
+      .profile-info input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        outline: none;
+      }
+
+      .profile-info button {
+        padding: 12px 25px;
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-top: 20px;
+        transition: all 0.3s ease;
+      }
+
+      .profile-info button:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      @media (max-width: 768px) {
+        .profile-container {
+          grid-template-columns: 1fr;
+        }
+
+        .profile-image img {
+          width: 120px;
+          height: 120px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="sidebar">
+      <img src="https://via.placeholder.com/80" alt="Perfil" />
+      <h2>Juanito Perez</h2>
+      <button onclick="showWaitingList()">Lista de espera</button>
+      <button onclick="showPatientManagement()">Agregar o modificar paciente</button>
+      <button onclick="showAppointmentManagement()">Agendar cita</button>
+      <button>Mensajes</button>
+      <button onclick="showStatisticsReport()">Reporte estadístico</button>
+      <button onclick="showProfile()">Ver mi perfil</button>
+      <button class="logout" onclick="logout()">Cerrar sesión</button>
+    </div>
+    <div class="content" id="content">
+      <h1>Bienvenido al Panel de Administración</h1>
+      <p>Selecciona una opción del menú lateral para comenzar.</p>
+    </div>
+    <script>
+      let selectedRow = null;
+      let selectedAppointmentRow = null;
+
+      function logout() {
+        localStorage.removeItem('session'); // Elimina la sesión almacenada
+        window.location.href = 'index.html'; // Redirige al login
+      }
+
+      function selectRow(row) {
+        // Si la fila clickeada es la misma que ya estaba seleccionada
+        if (selectedRow === row) {
+          row.classList.remove('selected');
+          selectedRow = null;
+          return;
+        }
+
+        // Deseleccionar la fila anterior si existe
+        if (selectedRow) {
+          selectedRow.classList.remove('selected');
+        }
+
+        // Seleccionar la nueva fila
+        row.classList.add('selected');
+        selectedRow = row;
+      }
+
+      function showPatientForm(mode) {
+        const content = document.getElementById('content');
+        
+        // Crear el overlay
+        let overlay = document.getElementById('overlay');
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'overlay';
+          document.body.appendChild(overlay);
+        }
+        
+        // Crear el contenedor del formulario
+        let formContainer = document.getElementById('patientFormContainer');
+        if (!formContainer) {
+          formContainer = document.createElement('div');
+          formContainer.id = 'patientFormContainer';
+          formContainer.className = 'modal-form';
+          document.body.appendChild(formContainer);
+        }
+
+        // Establecer el contenido del formulario
+        formContainer.innerHTML = `
+          <h2 id="formTitle">${mode === 'add' ? 'Agregar Paciente' : 'Modificar Paciente'}</h2>
+          <form id="patientForm">
+            <label>
+              Correo:
+              <input type="email" id="formCorreo" required />
+            </label>
+            <label>
+              Nombre:
+              <input type="text" id="formNombre" required />
+            </label>
+            <label>
+              Apellido:
+              <input type="text" id="formApellido" required />
+            </label>
+            <label>
+              Fecha de Nacimiento:
+              <input type="date" id="formFechaNacimiento" required />
+            </label>
+            <label>
+              Edad:
+              <input type="number" id="formEdad" required />
+            </label>
+            <label>
+              Sexo:
+              <select id="formSexo" required>
+                <option value="">Seleccione...</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </label>
+            <label>
+              RUT:
+              <input type="text" id="formRUT" required />
+            </label>
+            <label>
+              Teléfono:
+              <input type="text" id="formTelefono" required />
+            </label>
+            <label>
+              Dirección:
+              <input type="text" id="formDireccion" required />
+            </label>
+            <label>
+              Ciudad:
+              <input type="text" id="formCiudad" required />
+            </label>
+            <label>
+              Diagnóstico:
+              <input type="text" id="formDiagnostico" />
+            </label>
+            <div class="form-buttons">
+              <button type="button" onclick="savePatient()">Guardar</button>
+              <button type="button" onclick="cancelPatientForm()">Cancelar</button>
+            </div>
+          </form>
+        `;
+
+        if (mode === 'edit' && selectedRow) {
+          // Obtener el paciente seleccionado del localStorage
+          const patients = JSON.parse(localStorage.getItem('patients')) || [];
+          const selectedRut = selectedRow.querySelector('td:nth-child(1)').textContent;
+          const patient = patients.find(p => p.rut === selectedRut);
+
+          if (patient) {
+            // Rellenar el formulario con los datos del paciente
+            document.getElementById('formCorreo').value = patient.email || patient.correo || '';
+            document.getElementById('formNombre').value = patient.name || patient.nombre || '';
+            document.getElementById('formApellido').value = patient.lastName || patient.apellido || '';
+            document.getElementById('formFechaNacimiento').value = patient.birthDate || patient.fechaNacimiento || '';
+            document.getElementById('formEdad').value = patient.age || patient.edad || '';
+            document.getElementById('formSexo').value = patient.sex || patient.sexo || '';
+            document.getElementById('formRUT').value = patient.rut || '';
+            document.getElementById('formTelefono').value = patient.phone || patient.telefono || '';
+            document.getElementById('formDireccion').value = patient.address || patient.direccion || '';
+            document.getElementById('formCiudad').value = patient.city || patient.ciudad || '';
+            document.getElementById('formDiagnostico').value = patient.diagnosis || patient.diagnostico || '';
+          }
+        }
+
+        // Mostrar el formulario y el overlay
+        overlay.style.display = 'block';
+        formContainer.style.display = 'block';
+      }
+
+      function savePatient() {
+        const formContainer = document.getElementById('patientFormContainer');
+        const overlay = document.getElementById('overlay');
+
+        const patientData = {
+          email: document.getElementById('formCorreo').value,
+          name: document.getElementById('formNombre').value,
+          lastName: document.getElementById('formApellido').value,
+          birthDate: document.getElementById('formFechaNacimiento').value,
+          age: document.getElementById('formEdad').value,
+          sex: document.getElementById('formSexo').value,
+          rut: document.getElementById('formRUT').value,
+          phone: document.getElementById('formTelefono').value,
+          address: document.getElementById('formDireccion').value,
+          city: document.getElementById('formCiudad').value,
+          diagnosis: document.getElementById('formDiagnostico').value,
+          procesoKinesico: 0,
+          to: 0,
+          indiceIndependencia: 0,
+          escalaAmputacion: 0,
+          prioridad: 0
+        };
+
+        // Validar que todos los campos obligatorios estén completos
+        if (
+          !patientData.email ||
+          !patientData.name ||
+          !patientData.lastName ||
+          !patientData.birthDate ||
+          !patientData.age ||
+          !patientData.sex ||
+          !patientData.rut ||
+          !patientData.phone ||
+          !patientData.address ||
+          !patientData.city
+        ) {
+          alert('Todos los campos marcados son obligatorios.');
+          return;
+        }
+
+        // Obtener pacientes existentes
+        const patients = JSON.parse(localStorage.getItem('patients')) || [];
+        const existingPatientIndex = patients.findIndex(p => p.rut === patientData.rut);
+
+        if (existingPatientIndex === -1) {
+          // Es un nuevo paciente
+          // Verificar si ya existe un paciente con ese RUT
+          if (patients.some(p => p.rut === patientData.rut)) {
+            alert('Ya existe un paciente con ese RUT.');
+            return;
+          }
+
+          // Crear credenciales de usuario
+          const rutParts = patientData.rut.split('-');
+          const rutNumber = rutParts[0];
+          const rutVerifier = rutParts[1];
+          const lastThreeDigits = rutNumber.slice(-3);
+          
+          const username = `${patientData.name}.${patientData.lastName}.${lastThreeDigits}`.toLowerCase();
+          const password = `Paciente.${patientData.lastName}.${rutVerifier}`;
+
+          // Guardar credenciales de usuario
+          const users = JSON.parse(localStorage.getItem('users')) || [];
+          users.push({
+            username: username,
+            password: password,
+            rut: patientData.rut,
+            role: 'user'
+          });
+          localStorage.setItem('users', JSON.stringify(users));
+
+          // Agregar nuevo paciente
+          patients.push(patientData);
+          alert(`Paciente agregado correctamente.\n\nCredenciales de acceso:\nUsuario: ${username}\nContraseña: ${password}`);
+        } else {
+          // Modificar paciente existente
+          patients[existingPatientIndex] = patientData;
+          alert('Paciente modificado correctamente.');
+        }
+
+        // Guardar en localStorage
+        localStorage.setItem('patients', JSON.stringify(patients));
+
+        // Actualizar la tabla
+        loadPatients();
+
+        // Limpiar y cerrar el formulario
+        document.getElementById('patientForm').reset();
+        formContainer.style.display = 'none';
+        overlay.style.display = 'none';
+        selectedRow = null;
+      }
+
+      function viewPatientDetails() {
+        if (!selectedRow) {
+          alert('Seleccione una fila para ver más detalles.');
+          return;
+        }
+
+        // Obtener los datos del paciente desde localStorage
+        const patients = JSON.parse(localStorage.getItem('patients')) || [];
+        const patient = patients.find(p => p.rut === selectedRow.querySelector('td:nth-child(1)').textContent);
+
+        if (!patient) {
+          alert('No se encontraron datos del paciente.');
+          return;
+        }
+
+        // Mostrar los detalles en un nuevo módulo
+        const content = document.getElementById('content');
+        content.innerHTML = `
+          <h1>Detalles del Paciente</h1>
+          <div class="patient-details">
+            <p><strong>Correo:</strong> ${patient.email}</p>
+            <p><strong>Nombre:</strong> ${patient.name}</p>
+            <p><strong>Apellido:</strong> ${patient.lastName}</p>
+            <p><strong>Fecha de Nacimiento:</strong> ${patient.birthDate}</p>
+            <p><strong>Edad:</strong> ${patient.age}</p>
+            <p><strong>RUT:</strong> ${patient.rut}</p>
+            <p><strong>Teléfono:</strong> ${patient.phone}</p>
+            <p><strong>Dirección:</strong> ${patient.address}</p>
+            <p><strong>Ciudad:</strong> ${patient.city}</p>
+            <p><strong>Diagnóstico:</strong> ${patient.diagnosis || 'No especificado'}</p>
+            <h3>Datos Estadísticos</h3>
+            <p><strong>Proceso Kinésico%:</strong> ${patient.procesoKinesico || 0}%</p>
+            <p><strong>T.O%:</strong> ${patient.to || 0}%</p>
+            <p><strong>Índice de Independencia Funcional%:</strong> ${patient.indiceIndependencia || 0}%</p>
+            <p><strong>Escala Amputación y Prótesis%:</strong> ${patient.escalaAmputacion || 0}%</p>
+            <p><strong>Prioridad:</strong> ${patient.prioridad ? patient.prioridad.toFixed(2) : 0}%</p>
+          </div>
+          <button onclick="showPatientManagement()">Volver</button>
+        `;
+      }
+
+      function showWaitingList() {
+        const content = document.getElementById('content');
+        content.innerHTML = `
+          <h1>Lista de Espera</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>RUT</th>
+                <th>Nombre</th>
+                <th>Tipo de Atención</th>
+                <th>Fecha Realización</th>
+                <th>Fecha Estimada</th>
+                <th>Prioridad</th>
+              </tr>
+            </thead>
+            <tbody id="waitingListBody">
+            </tbody>
+          </table>
+          <div class="action-buttons">
+            <button onclick="showWaitingListForm('add')">Agregar</button>
+            <button onclick="showWaitingListForm('edit')">Modificar</button>
+            <button onclick="deleteWaitingListEntry()">Eliminar</button>
+          </div>
+        `;
+        loadWaitingList();
+      }
+
+      function loadWaitingList() {
+        const activeUser = localStorage.getItem('activeUser');
+        if (!activeUser) {
+          alert('Debe iniciar sesión para ver esta información');
+          return;
+        }
+
+        const tbody = document.getElementById('waitingListBody');
+        if (!tbody) {
+          console.error('No se encontró la tabla de lista de espera');
+          return;
+        }
+
+        tbody.innerHTML = '';
+        
+        const waitingList = JSON.parse(localStorage.getItem('waitingList')) || [];
+        console.log('Lista de espera cargada:', waitingList);
+        
+        waitingList.forEach(entry => {
+          const row = tbody.insertRow();
+          row.onclick = () => selectRow(row);
+          
+          row.insertCell().textContent = entry.patientRut || entry.rut;
+          row.insertCell().textContent = entry.patientName || `${entry.nombre} ${entry.apellido}`;
+          row.insertCell().textContent = entry.attentionType || entry.tipoAtencion;
+          row.insertCell().textContent = entry.realizationDate || entry.fechaRealizacion;
+          row.insertCell().textContent = entry.estimatedDate || entry.fechaEstimada;
+          row.insertCell().textContent = entry.priority || entry.prioridad || '0';
+        });
+      }
+
+      function showPatientManagement() {
+        const content = document.getElementById('content');
+        content.innerHTML = `
+          <h1>Gestión de Pacientes</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>RUT</th>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th>Edad</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Ciudad</th>
+              </tr>
+            </thead>
+            <tbody id="patientsTable">
+            </tbody>
+          </table>
+          <div class="action-buttons">
+            <button onclick="showPatientForm('add')">Agregar</button>
+            <button onclick="showPatientForm('edit')">Modificar</button>
+            <button onclick="deletePatient()">Eliminar</button>
+            <button onclick="viewPatientDetails()">Ver más</button>
+          </div>
+        `;
+        loadPatients();
+      }
+
+      function showAppointmentManagement() {
+        const content = document.getElementById('content');
+        content.innerHTML = `
+          <h1>Gestión de Citas</h1>
+          <table>
+            <thead>
+              <tr>
+                <th>RUT</th>
+                <th>Nombre</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Doctor</th>
+                <th>Especialidad</th>
+              </tr>
+            </thead>
+            <tbody id="appointmentTableBody">
+            </tbody>
+          </table>
+          <div class="action-buttons">
+            <button onclick="showAppointmentForm('add')">Agregar</button>
+            <button onclick="showAppointmentForm('edit')">Modificar</button>
+            <button onclick="deleteAppointment()">Eliminar</button>
+          </div>
+        `;
+        loadAppointments();
+      }
+
+      function showAppointmentForm(mode) {
+        const formContainer = document.getElementById('appointmentFormContainer');
+        const overlay = document.getElementById('overlay');
+        const formTitle = document.getElementById('appointmentFormTitle');
+        const form = document.getElementById('appointmentForm');
+
+        if (mode === 'add') {
+          formTitle.textContent = 'Agregar Cita';
+          form.reset(); // Limpiar el formulario
+          selectedAppointmentRow = null; // No hay fila seleccionada
+        } else if (mode === 'edit') {
+          if (!selectedAppointmentRow) {
+            alert('Seleccione una fila para modificar.');
+            return;
+          }
+          formTitle.textContent = 'Modificar Cita';
+
+          // Rellenar el formulario con los datos de la fila seleccionada
+          const cells = selectedAppointmentRow.querySelectorAll('td');
+          document.getElementById('formRUTCita').value = cells[0].textContent;
+          document.getElementById('formNombreCita').value = cells[1].textContent.split(' ')[0];
+          document.getElementById('formApellidoCita').value = cells[1].textContent.split(' ')[1];
+          document.getElementById('formFechaCita').value = cells[2].textContent;
+          document.getElementById('formHoraCita').value = cells[3].textContent;
+          document.getElementById('formDoctorCita').value = cells[4].textContent;
+          document.getElementById('formEspecialidadCita').value = cells[5].textContent;
+        }
+
+        formContainer.style.display = 'block'; // Mostrar el formulario
+        overlay.style.display = 'block'; // Mostrar el fondo oscuro
+      }
+
+      function saveAppointment() {
+        const formContainer = document.getElementById('appointmentFormContainer');
+        const overlay = document.getElementById('overlay');
+        const tbody = document.getElementById('appointmentTableBody');
+
+        const appointmentData = {
+          patientRut: document.getElementById('formRUTCita').value,
+          patientName: document.getElementById('formNombreCita').value + ' ' + document.getElementById('formApellidoCita').value,
+          date: document.getElementById('formFechaCita').value,
+          time: document.getElementById('formHoraCita').value,
+          doctor: document.getElementById('formDoctorCita').value,
+          specialty: document.getElementById('formEspecialidadCita').value,
+        };
+
+        // Validar que todos los campos estén completos
+        if (
+          !appointmentData.patientRut ||
+          !appointmentData.patientName ||
+          !appointmentData.date ||
+          !appointmentData.time ||
+          !appointmentData.doctor ||
+          !appointmentData.specialty
+        ) {
+          alert('Todos los campos son obligatorios.');
+          return;
+        }
+
+        // Obtener citas existentes
+        const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+
+        if (!selectedAppointmentRow) {
+          // Agregar nueva cita
+          appointments.push(appointmentData);
+        } else {
+          // Modificar cita existente
+          const index = Array.from(tbody.children).indexOf(selectedAppointmentRow);
+          appointments[index] = appointmentData;
+        }
+
+        // Guardar en localStorage
+        localStorage.setItem('appointments', JSON.stringify(appointments));
+
+        // Actualizar la tabla
+        loadAppointments();
+
+        // Limpiar y cerrar el formulario
+        document.getElementById('appointmentForm').reset();
+        formContainer.style.display = 'none';
+        overlay.style.display = 'none';
+        selectedAppointmentRow = null;
+
+        alert(selectedAppointmentRow ? 'Cita modificada correctamente.' : 'Cita agregada correctamente.');
+      }
+
+      function deleteAppointment() {
+        if (!selectedAppointmentRow) {
+          alert('Seleccione una cita para eliminar.');
+          return;
+        }
+
+        if (confirm('¿Está seguro de que desea eliminar esta cita?')) {
+          const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+          const index = Array.from(document.getElementById('appointmentTableBody').children).indexOf(selectedAppointmentRow);
+          
+          appointments.splice(index, 1);
+          localStorage.setItem('appointments', JSON.stringify(appointments));
+          
+          loadAppointments();
+          selectedAppointmentRow = null;
+          
+          alert('Cita eliminada correctamente.');
+        }
+      }
+
+      function showWaitingListForm(mode) {
+        const formContainer = document.getElementById('waitingListFormContainer');
+        const overlay = document.getElementById('overlay');
+        const formTitle = document.getElementById('waitingListFormTitle');
+        const form = document.getElementById('waitingListForm');
+
+        if (mode === 'add') {
+          formTitle.textContent = 'Agregar a Lista de Espera';
+          form.reset(); // Limpiar el formulario
+          selectedRow = null; // No hay fila seleccionada
+        } else if (mode === 'edit') {
+          if (!selectedRow) {
+            alert('Seleccione una fila para modificar.');
+            return;
+          }
+          formTitle.textContent = 'Modificar Entrada de Lista de Espera';
+
+          // Rellenar el formulario con los datos de la fila seleccionada
+          const cells = selectedRow.querySelectorAll('td');
+          document.getElementById('formRUTLista').value = cells[0].textContent;
+          document.getElementById('formNombreLista').value = cells[1].textContent.split(' ')[0];
+          document.getElementById('formApellidoLista').value = cells[1].textContent.split(' ')[1];
+          document.getElementById('formFechaNacimientoLista').value = cells[2].textContent;
+          document.getElementById('formEdadLista').value = cells[3].textContent;
+          document.getElementById('formSexoLista').value = cells[4].textContent;
+          document.getElementById('formCiudadLista').value = cells[5].textContent;
+          document.getElementById('formDireccionLista').value = cells[6].textContent;
+          document.getElementById('formTelefonoLista').value = cells[7].textContent;
+          document.getElementById('formTipoAtencionLista').value = cells[8].textContent;
+          document.getElementById('formFechaRealizacionLista').value = cells[9].textContent;
+          document.getElementById('formFechaEstimadaLista').value = cells[10].textContent;
+          document.getElementById('formPrioridadLista').value = cells[11].textContent;
+        }
+
+        formContainer.style.display = 'block'; // Mostrar el formulario
+        overlay.style.display = 'block'; // Mostrar el fondo oscuro
+      }
+
+      function saveWaitingListEntry() {
+        const formContainer = document.getElementById('waitingListFormContainer');
+        const overlay = document.getElementById('overlay');
+
+        const entryData = {
+          patientRut: document.getElementById('formRUTLista').value,
+          patientName: document.getElementById('formNombreLista').value + ' ' + document.getElementById('formApellidoLista').value,
+          attentionType: document.getElementById('formTipoAtencionLista').value,
+          realizationDate: document.getElementById('formFechaRealizacionLista').value,
+          estimatedDate: document.getElementById('formFechaEstimadaLista').value,
+          priority: document.getElementById('formPrioridadLista')?.value || '0'
+        };
+
+        // Validar que todos los campos estén completos
+        if (
+          !entryData.patientRut ||
+          !entryData.patientName ||
+          !entryData.attentionType ||
+          !entryData.realizationDate ||
+          !entryData.estimatedDate
+        ) {
+          alert('Todos los campos son obligatorios.');
+          return;
+        }
+
+        // Obtener lista de espera existente
+        const waitingList = JSON.parse(localStorage.getItem('waitingList')) || [];
+
+        if (!selectedRow) {
+          // Agregar nueva entrada
+          waitingList.push(entryData);
+        } else {
+          // Modificar entrada existente
+          const index = Array.from(document.getElementById('waitingListBody').children).indexOf(selectedRow);
+          waitingList[index] = entryData;
+        }
+
+        // Guardar en localStorage
+        localStorage.setItem('waitingList', JSON.stringify(waitingList));
+
+        // Actualizar la tabla
+        loadWaitingList();
+
+        // Limpiar y cerrar el formulario
+        document.getElementById('waitingListForm').reset();
+        formContainer.style.display = 'none';
+        overlay.style.display = 'none';
+        selectedRow = null;
+
+        alert(selectedRow ? 'Entrada modificada correctamente.' : 'Entrada agregada correctamente.');
+      }
+
+      function deleteWaitingListEntry() {
+        if (!selectedRow) {
+          alert('Seleccione una entrada para eliminar.');
+          return;
+        }
+
+        if (confirm('¿Está seguro de que desea eliminar esta entrada?')) {
+          const waitingList = JSON.parse(localStorage.getItem('waitingList')) || [];
+          const index = Array.from(document.getElementById('waitingListBody').children).indexOf(selectedRow);
+          
+          waitingList.splice(index, 1);
+          localStorage.setItem('waitingList', JSON.stringify(waitingList));
+          
+          loadWaitingList();
+          selectedRow = null;
+          
+          alert('Entrada eliminada correctamente.');
+        }
+      }
+
+      function showStatisticsReport() {
+        const content = document.getElementById('content');
+        content.innerHTML = `
+          <h1>Reporte Estadístico</h1>
+          <div class="statistics-container">
+            <form id="statisticsForm" class="statistics-form">
+              <h3>Información del Paciente</h3>
+              <label>Nombre del Paciente: <input type="text" id="patientName" required /></label>
+              <label>RUT: <input type="text" id="patientRUT" required /></label>
+              
+              <h3>Proceso Terapéutico</h3>
+              <label>Kinésico (%): <input type="number" id="kinesico" min="0" max="100" required /></label>
+              <label>T.O (%): <input type="number" id="to" min="0" max="100" required /></label>
+              <label>Índice de Independencia (%): <input type="number" id="independencia" min="0" max="100" required /></label>
+              <label>Escala Amputación (%): <input type="number" id="amputacion" min="0" max="100" required /></label>
+              
+              <div class="statistics-buttons">
+                <button type="button" onclick="calculatePriority()">Calcular</button>
+                <button type="button" onclick="resetStatistics()">Reiniciar</button>
+              </div>
+            </form>
+
+            <div class="charts-container">
+              <div class="chart">
+                <h4>Kinésico</h4>
+                <div id="kinesicoChart" class="circle-chart" data-value="0%"></div>
+              </div>
+              <div class="chart">
+                <h4>T.O</h4>
+                <div id="toChart" class="circle-chart" data-value="0%"></div>
+              </div>
+              <div class="chart">
+                <h4>Índice de Independencia</h4>
+                <div id="independenciaChart" class="circle-chart" data-value="0%"></div>
+              </div>
+              <div class="chart">
+                <h4>Escala Amputación</h4>
+                <div id="amputacionChart" class="circle-chart" data-value="0%"></div>
+              </div>
+            </div>
+
+            <div class="priority-section">
+              <h3>Prioridad Total</h3>
+              <div id="priorityResult" class="priority-bar" data-value="0%"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      function calculatePriority() {
+        // Obtener los valores ingresados
+        const kinesico = parseFloat(document.getElementById('kinesico').value) || 0;
+        const to = parseFloat(document.getElementById('to').value) || 0;
+        const independencia = parseFloat(document.getElementById('independencia').value) || 0;
+        const amputacion = parseFloat(document.getElementById('amputacion').value) || 0;
+        const rut = document.getElementById('patientRUT').value;
+
+        // Validar que los valores estén entre 0 y 100
+        if (
+          kinesico < 0 || kinesico > 100 ||
+          to < 0 || to > 100 ||
+          independencia < 0 || independencia > 100 ||
+          amputacion < 0 || amputacion > 100
+        ) {
+          alert('Todos los valores deben estar entre 0 y 100.');
+          return;
+        }
+
+        // Calcular la prioridad
+        const priority = (kinesico * 0.4) + (to * 0.3) + (independencia * 0.2) + (amputacion * 0.1);
+
+        // Actualizar los datos del paciente
+        const patients = JSON.parse(localStorage.getItem('patients')) || [];
+        const patientIndex = patients.findIndex(p => p.rut === rut);
+        
+        if (patientIndex !== -1) {
+          // Actualizar los datos estadísticos del paciente
+          patients[patientIndex] = {
+            ...patients[patientIndex],
+            procesoKinesico: kinesico,
+            to: to,
+            indiceIndependencia: independencia,
+            escalaAmputacion: amputacion,
+            prioridad: priority
+          };
+          
+          // Guardar los datos actualizados
+          localStorage.setItem('patients', JSON.stringify(patients));
+
+          // Mostrar el resultado
+          const priorityResult = document.getElementById('priorityResult');
+          priorityResult.textContent = `${priority.toFixed(2)}%`;
+          priorityResult.style.setProperty('--percentage', `${priority}%`);
+          priorityResult.setAttribute('data-value', `${priority.toFixed(2)}%`);
+
+          // Actualizar gráficos
+          updateChart('kinesicoChart', kinesico);
+          updateChart('toChart', to);
+          updateChart('independenciaChart', independencia);
+          updateChart('amputacionChart', amputacion);
+
+          alert('Datos estadísticos guardados correctamente para el paciente.');
+        } else {
+          alert('No se encontró un paciente con el RUT ingresado. Por favor, verifique el RUT.');
+        }
+      }
+
+      function resetStatistics() {
+        // Limpiar el formulario
+        document.getElementById('statisticsForm').reset();
+
+        // Reiniciar los gráficos
+        updateChart('kinesicoChart', 0);
+        updateChart('toChart', 0);
+        updateChart('independenciaChart', 0);
+        updateChart('amputacionChart', 0);
+
+        // Reiniciar la barra de prioridad
+        const priorityResult = document.getElementById('priorityResult');
+        priorityResult.textContent = '0%';
+        priorityResult.style.setProperty('--percentage', '0%');
+        priorityResult.setAttribute('data-value', '0%');
+      }
+
+      function updateChart(chartId, value) {
+        const chart = document.getElementById(chartId);
+        if (!chart) return;
+        
+        chart.style.setProperty('--percentage', `${value}%`);
+        chart.setAttribute('data-value', `${value}%`);
+      }
+
+      function showProfile() {
+        const content = document.getElementById('content');
+        const userData = JSON.parse(localStorage.getItem('userData')) || {
+          nombre: 'Juanito Perez',
+          imagen: 'https://via.placeholder.com/80',
+          password: '********'
+        };
+
+        content.innerHTML = `
+          <h1>Mi Perfil</h1>
+          <div class="profile-container">
+            <div class="profile-image">
+              <img src="${userData.imagen}" alt="Foto de perfil" id="profileImage" />
+              <button onclick="changeProfileImage()">Cambiar imagen</button>
+            </div>
+            <div class="profile-info">
+              <form id="profileForm">
+                <label>Nombre: <input type="text" id="profileName" value="${userData.nombre}" required /></label>
+                <label>Contraseña: <input type="password" id="profilePassword" value="********" required /></label>
+                <button type="button" onclick="saveProfile()">Guardar cambios</button>
+              </form>
+            </div>
+          </div>
+        `;
+      }
+
+      function changeProfileImage() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = function(e) {
+          const file = e.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              // Obtener los datos actuales del usuario
+              const userData = JSON.parse(localStorage.getItem('userData')) || {};
+              // Actualizar la imagen
+              userData.imagen = event.target.result;
+              // Guardar en localStorage
+              localStorage.setItem('userData', JSON.stringify(userData));
+              
+              // Actualizar todas las imágenes en la página
+              document.getElementById('profileImage').src = event.target.result;
+              document.querySelector('.sidebar img').src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+      }
+
+      function saveProfile() {
+        const userData = JSON.parse(localStorage.getItem('userData')) || {};
+        userData.nombre = document.getElementById('profileName').value;
+        const newPassword = document.getElementById('profilePassword').value;
+        
+        // Solo actualizar la contraseña si se ha modificado
+        if (newPassword !== '********') {
+          userData.password = newPassword;
+        }
+        
+        localStorage.setItem('userData', JSON.stringify(userData));
+        
+        // Actualizar el nombre en la barra lateral
+        document.querySelector('.sidebar h2').textContent = userData.nombre;
+        
+        alert('Perfil actualizado correctamente');
+      }
+
+      function cancelPatientForm() {
+        const formContainer = document.getElementById('patientFormContainer');
+        const overlay = document.getElementById('overlay');
+        
+        if (formContainer) {
+          formContainer.style.display = 'none';
+          formContainer.remove();
+        }
+        
+        if (overlay) {
+          overlay.style.display = 'none';
+          overlay.remove();
+        }
+
+        // Deseleccionar la fila si hay una seleccionada
+        if (selectedRow) {
+          selectedRow.classList.remove('selected');
+          selectedRow = null;
+        }
+      }
+
+      function loadPatients() {
+        const activeUser = localStorage.getItem('activeUser');
+        if (!activeUser) {
+          alert('Debe iniciar sesión para ver esta información');
+          return;
+        }
+
+        const tbody = document.querySelector('#patientsTable');
+        if (!tbody) {
+          console.error('No se encontró la tabla de pacientes');
+          return;
+        }
+
+        tbody.innerHTML = '';
+        
+        const patients = JSON.parse(localStorage.getItem('patients')) || [];
+        console.log('Pacientes cargados:', patients);
+        
+        patients.forEach(patient => {
+          const row = tbody.insertRow();
+          row.onclick = () => selectRow(row);
+          
+          row.insertCell().textContent = patient.rut;
+          row.insertCell().textContent = patient.name || patient.nombre;
+          row.insertCell().textContent = patient.lastName || patient.apellido;
+          row.insertCell().textContent = patient.age || patient.edad;
+          row.insertCell().textContent = patient.email || patient.correo;
+          row.insertCell().textContent = patient.phone || patient.telefono;
+          row.insertCell().textContent = patient.address || patient.direccion;
+          row.insertCell().textContent = patient.city || patient.ciudad;
+
+          // Agregar los datos adicionales como atributos data-*
+          row.dataset.sex = patient.sex || patient.sexo || '';
+          row.dataset.birthDate = patient.birthDate || patient.fechaNacimiento || '';
+          row.dataset.diagnosis = patient.diagnosis || patient.diagnostico || '';
+          row.dataset.procesoKinesico = patient.procesoKinesico || 0;
+          row.dataset.to = patient.to || 0;
+          row.dataset.indiceIndependencia = patient.indiceIndependencia || 0;
+          row.dataset.escalaAmputacion = patient.escalaAmputacion || 0;
+          row.dataset.prioridad = patient.prioridad || 0;
+        });
+      }
+
+      function loadAppointments() {
+        const activeUser = localStorage.getItem('activeUser');
+        if (!activeUser) {
+          alert('Debe iniciar sesión para ver esta información');
+          return;
+        }
+
+        const tbody = document.getElementById('appointmentTableBody');
+        if (!tbody) {
+          console.error('No se encontró la tabla de citas');
+          return;
+        }
+
+        tbody.innerHTML = '';
+        
+        const appointments = JSON.parse(localStorage.getItem('appointments')) || [];
+        console.log('Citas cargadas:', appointments); // Debug
+        
+        appointments.forEach(appointment => {
+          const row = tbody.insertRow();
+          row.onclick = () => selectAppointmentRow(row);
+          
+          row.insertCell().textContent = appointment.patientRut || appointment.rut;
+          row.insertCell().textContent = appointment.patientName || `${appointment.nombre} ${appointment.apellido}`;
+          row.insertCell().textContent = appointment.date || appointment.fecha;
+          row.insertCell().textContent = appointment.time || appointment.hora;
+          row.insertCell().textContent = appointment.doctor;
+          row.insertCell().textContent = appointment.specialty || appointment.especialidad;
+        });
+      }
+
+      function selectAppointmentRow(row) {
+        // Si la fila clickeada es la misma que ya estaba seleccionada
+        if (selectedAppointmentRow === row) {
+          row.classList.remove('selected');
+          selectedAppointmentRow = null;
+          return;
+        }
+
+        // Deseleccionar la fila anterior si existe
+        if (selectedAppointmentRow) {
+          selectedAppointmentRow.classList.remove('selected');
+        }
+
+        // Seleccionar la nueva fila
+        row.classList.add('selected');
+        selectedAppointmentRow = row;
+      }
+
+      // Asegurarse de que las tablas se carguen al iniciar la página
+      window.addEventListener('load', function() {
+        // Cargar datos del usuario
+        const activeUser = localStorage.getItem('activeUser');
+        if (!activeUser) {
+          return;
+        }
+
+        // Determinar qué tabla está visible y cargarla
+        const content = document.getElementById('content');
+        if (content.querySelector('#patientsTable')) {
+          loadPatients();
+        } else if (content.querySelector('#appointmentTableBody')) {
+          loadAppointments();
+        } else if (content.querySelector('#waitingListBody')) {
+          loadWaitingList();
+        }
+      });
+
+      // Al inicio del archivo, después de las variables globales
+      window.onload = function() {
+        // Cargar datos del usuario al iniciar
+        const userData = JSON.parse(localStorage.getItem('userData')) || {
+          nombre: 'Juanito Perez',
+          imagen: 'https://via.placeholder.com/80'
+        };
+        
+        // Actualizar la imagen en la barra lateral
+        const sidebarImg = document.querySelector('.sidebar img');
+        if (sidebarImg && userData.imagen) {
+          sidebarImg.src = userData.imagen;
+        }
+        
+        // Actualizar el nombre en la barra lateral
+        const sidebarName = document.querySelector('.sidebar h2');
+        if (sidebarName && userData.nombre) {
+          sidebarName.textContent = userData.nombre;
+        }
+      };
+    </script>
+  </body>
+</html>
